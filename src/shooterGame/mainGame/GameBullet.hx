@@ -5,6 +5,7 @@ import flambe.System;
 import flambe.display.Graphics;
 import flambe.display.FillSprite;
 import flambe.Entity;
+import flambe.math.Point;
 
 import shooterGame.utils.pxlSq.Utils;
 
@@ -31,6 +32,7 @@ class GameBullet extends GameCollision
 	
 	public function setBulletSize(size: Float): Void {
 		this.bulletSize = size;
+		setColliderSize(new Point(this.getNaturalWidth() / 2, this.getNaturalHeight() / 2));
 	}
 	
 	override public function onAdded() 

@@ -12,7 +12,7 @@ import shooterGame.utils.pxlSq.Utils;
  */
 class GameShip extends GameUnit
 {
-	private var gameBullet: Array<GameBullet>;
+	public var gameBullet: Array<GameBullet>;
 	
 	public function new() 
 	{

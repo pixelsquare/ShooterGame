@@ -13,6 +13,7 @@ import flambe.display.Sprite;
 import haxe.Timer;
 import shooterGame.mainGame.GameBullet;
 import shooterGame.mainGame.GameElement;
+import shooterGame.mainGame.GameEnemy;
 import shooterGame.mainGame.GameShip;
 import shooterGame.mainGame.GameUnit;
 
@@ -30,6 +31,7 @@ class Main
 	private static var endGame: Entity;
 	
 	private static var playerUnit: GameShip;
+	private static var testEnemy: GameEnemy;
 	
 	private static inline var ENEMY_LIFE: Int = 1;
 	private static inline var PLAYER_LIFE: Int = 1;
@@ -91,20 +93,37 @@ class Main
 		playerUnit.setRotation(180);
 		mainGame.addChild(new Entity().add(playerUnit));
 		
+		testEnemy = new GameEnemy();
+		testEnemy.setTexture(assetPack.getTexture(AssetName.PLANE));
+		testEnemy.centerAnchor();
+		testEnemy.setXY(System.stage.width / 2, System.stage.height * 0.1);
+		mainGame.addChild(new Entity().add(testEnemy));
+		
+		//Utils.ConsoleLog(testEnemy.boundsToString());
+		
 		//System.pointer.move.connect(onPointerMove);
 		System.pointer.down.connect(onPointerDown);
 		
-		//var timer: Timer = new Timer(200);
-		//timer.run = onUpdate;
+		var timer: Timer = new Timer(200);
+		timer.run = onUpdate;
 	}
 	
 	private static function createEndGame(): Void {
 		endGame = new Entity();
 	}
 	
-	//private static function onUpdate(): Void {
+	private static function onUpdate(): Void {
 		//Utils.ConsoleLog(System.pointer.x + " " + System.pointer.y);
-	//}
+		
+		if(playerUnit.gameBullet != null) {
+			for (bullet in playerUnit.gameBullet) {
+				if (testEnemy.hasCollidedWith(bullet)) {
+					testEnemy.dispose();
+					bullet.dispose();
+				}
+			}
+		}
+	}
 	
 	//private static function onPointerMove(event: PointerEvent) {
 		//

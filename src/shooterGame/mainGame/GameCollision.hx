@@ -22,6 +22,12 @@ class GameCollision extends GameElement
 		setColliderSize(new Point(this.getNaturalWidth() / 2, this.getNaturalHeight() / 2));
 	}
 	
+	override public function setTexture(texture:Texture):Void 
+	{
+		super.setTexture(texture);
+		setColliderSize(new Point(this.getNaturalWidth() / 2, this.getNaturalHeight() / 2));
+	}
+	
 	public function setColliderSize(size: Point) {
 		bounds = size;
 	}
@@ -39,10 +45,18 @@ class GameCollision extends GameElement
 		this.y._ + this.bounds.y <
 		other.y._ - other.bounds.y;
 		
+		//Utils.ConsoleLog(bounds.toString());
+		//Utils.ConsoleLog(other.bounds.toString());
+		//Utils.ConsoleLog(xHasNotCollided + " " +yHasNotCollided);
+		
 		if (xHasNotCollided || yHasNotCollided)
 			return false;
 		
 		return true;
+	}
+	
+	public function boundsToString(): String {
+		return bounds.toString();
 	}
 	
 }
