@@ -1,10 +1,10 @@
 package shooterGame.mainGame;
 
 import flambe.Entity;
-import flambe.System;
+import flambe.input.PointerEvent;
 import flambe.math.FMath;
-import flambe.util.SignalConnection;
-import shooterGame.utils.pxlSq.Utils;
+import flambe.System;
+
 
 /**
  * ...
@@ -12,43 +12,46 @@ import shooterGame.utils.pxlSq.Utils;
  */
 class GameShip extends GameUnit
 {
-	public var gameBullet: Array<GameBullet>;
+	public var shipBullets(default, null): Array<GameBullet>;
+	private var canMove: Bool;
 	
 	public function new() 
 	{
 		super();
-		gameBullet = new Array<GameBullet>();
+		shipBullets = new Array<GameBullet>();
 	}
 	
-	public function FireBullet(): Void {
-		SpawnBullet();
+	public function fireBullet(): Void {
+		spawnBullet();
 	}
 	
-	public function SpawnBullet(): Void {
+	public function spawnBullet(): Void {
 		var bullet: GameBullet = new GameBullet(this.x._, this.y._ - 50);
 		bullet.centerAnchor();
-		gameBullet.push(bullet);
+		shipBullets.push(bullet);
 		this.owner.parent.addChild(new Entity().add(bullet));
 	}
 	
-	public function RemoveBullet(bullet: GameBullet) {
-		gameBullet.remove(bullet);
+	public function removeBullet(bullet: GameBullet): Void {
+		shipBullets.remove(bullet);
 	}
 	
-	override public function onAdded() 
-	{
-		 super.onAdded();
+	public function onMouseMove(event: PointerEvent): Void {
+		canMove = true;
 	}
 	
-	override public function onRemoved() 
-	{
-		super.onRemoved();
+	public function clearShipBullets(): Void {
+		shipBullets = new Array<GameBullet>();
 	}
 	
 	override public function onUpdate(dt:Float) 
 	{	
+		if (!canMove) return;
+		
 		this.x._ = System.pointer.x;
 		this.x._ = FMath.clamp(this.x._, getNaturalWidth() / 2, System.stage.width - (getNaturalWidth() / 2));
+		
+		canMove = false;
 	}
 	
 }

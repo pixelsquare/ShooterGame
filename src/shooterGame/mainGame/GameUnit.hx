@@ -19,7 +19,7 @@ class GameUnit extends GameCollision
 		
 		if (this.life <= 0) {
 			this.owner.dispose();
-			isDead = true;
+			elementIsDead = true;
 		}
 	}
 	

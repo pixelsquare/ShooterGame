@@ -1,29 +1,20 @@
 package shooterGame;
 
-import flambe.animation.AnimatedFloat;
-import flambe.Component;
+import flambe.asset.AssetPack;
+import flambe.asset.Manifest;
+import flambe.display.FillSprite;
 import flambe.display.Font;
 import flambe.display.TextSprite;
 import flambe.Entity;
 import flambe.input.PointerEvent;
-import flambe.math.Point;
 import flambe.System;
-import flambe.asset.AssetPack;
-import flambe.asset.Manifest;
-import flambe.display.FillSprite;
-import flambe.display.ImageSprite;
-import flambe.display.Sprite;
 import flambe.util.SignalConnection;
 import haxe.Timer;
 
-import shooterGame.mainGame.GameBullet;
-import shooterGame.mainGame.GameElement;
 import shooterGame.mainGame.GameEnemy;
 import shooterGame.mainGame.GameShip;
-import shooterGame.mainGame.GameUnit;
-import shooterGame.mainGame.GameCollision;
 import shooterGame.utils.AssetName;
-import shooterGame.utils.pxlSq.Utils;
+
 
 class Main
 {
@@ -43,17 +34,21 @@ class Main
 	
 	// Game data
 	private static var enemiesDestroyed: Int;
-	private static var enemiesDestryoedText: TextSprite;
+	private static var enemiesDestroyedText: TextSprite;
 	
 	// End Game Data
 	private static var gameOverScoreText: TextSprite;
+	private static var playAgainBG: FillSprite;
 	private static var playAgainText: TextSprite;
 	
 	// Game Font
 	private static var gameFont: Font;
 	
 	// Signal connection used for firing
-	private static var gameSignalConnection: SignalConnection;
+	private static var playerFireSignalConnection: SignalConnection;
+	
+	// Signal connection used for moving
+	private static var playerMoveSignalConnection: SignalConnection;
 	
 	// Constants for unit lives
 	private static inline var ENEMY_LIFE: Int = 1;
@@ -67,6 +62,9 @@ class Main
 	
 	// Used to store enemies and accessing them
 	private static inline var ENEMY_NAME_FORMAT = "enemies/ship_";
+	
+	// UI background height
+	private static inline var UI_BACKGROUND_HEIGHT = 50;
 	
     private static function main ()
     {
@@ -85,7 +83,7 @@ class Main
 		assetPack = pack;
 		
         // Add a solid color background
-        var background = new FillSprite(0x202020, System.stage.width, System.stage.height);
+        var background: FillSprite = new FillSprite(0x202020, System.stage.width, System.stage.height);
         System.root.addChild(new Entity().add(background));
 
         // Add a plane that moves along the screen
@@ -110,16 +108,18 @@ class Main
 		playerUnit.centerAnchor();
 		
 		enemyUnits = new Array<GameEnemy>();
-		
 		enemiesDestroyed = 0;
+		
+		// UI for enemies destroyed
 		var enemiesDestroyedEntity: Entity = new Entity();
-		var enemiesDestroyedBG = new FillSprite(0xFF9200, System.stage.width, 40);
-		enemiesDestroyedBG.setXY(0, System.stage.height - 40);
+		var enemiesDestroyedBG: FillSprite = new FillSprite(0xFF9200, System.stage.width, UI_BACKGROUND_HEIGHT);
+		enemiesDestroyedBG.setXY(0, System.stage.height - UI_BACKGROUND_HEIGHT);
 		enemiesDestroyedEntity.add(enemiesDestroyedBG);
 		
-		enemiesDestryoedText = new TextSprite(gameFont, "Enemies Destroyed:");
+		enemiesDestroyedText = new TextSprite(gameFont, "Enemies Destroyed:");
+		enemiesDestroyedText.y._ += enemiesDestroyedText.getNaturalHeight() / 3;
 		setScoreDirty();
-		enemiesDestroyedEntity.addChild(new Entity().add(enemiesDestryoedText));
+		enemiesDestroyedEntity.addChild(new Entity().add(enemiesDestroyedText));
 		
 		mainGame.addChild(enemiesDestroyedEntity);
 	}
@@ -128,38 +128,56 @@ class Main
 		endGame = new Entity();
 		
 		var headerEntity: Entity = new Entity();
-		var headerBG = new FillSprite(0xFF9200, System.stage.width, 40);
-		headerBG.y._ = System.stage.height / 2 - (headerBG.height._ / 2);
+		var headerBG: FillSprite = new FillSprite(0xFF9200, System.stage.width, UI_BACKGROUND_HEIGHT);
+		headerBG.y._ = System.stage.height / 3 - (headerBG.height._ / 2);
 		headerEntity.add(headerBG);
 		
-		var gameOverText = new TextSprite(gameFont, "GAME OVER");
+		var gameOverText: TextSprite = new TextSprite(gameFont, "GAME OVER");
 		gameOverText.centerAnchor();
 		gameOverText.x._ = System.stage.width / 2;
-		gameOverText.y._ += gameOverText.getNaturalHeight() / 2;
+		gameOverText.y._ += headerBG.getNaturalHeight() / 2;
 		headerEntity.addChild(new Entity().add(gameOverText));
 		
 		endGame.addChild(headerEntity);
 		
 		var scoreEntity: Entity = new Entity();
-		var scoreBG = new FillSprite(0x9B61A4, System.stage.width, 40);
-		scoreBG.y._ = System.stage.height / 2 + (scoreBG.height._ / 2);
+		var scoreBG: FillSprite = new FillSprite(0x9B61A4, System.stage.width, UI_BACKGROUND_HEIGHT);
+		scoreBG.y._ = System.stage.height / 3 + (scoreBG.height._ / 2);
 		scoreEntity.add(scoreBG);
 		
 		gameOverScoreText = new TextSprite(gameFont, "SCORE: 0000000");
 		gameOverScoreText.align = TextAlign.Center;
 		gameOverScoreText.centerAnchor();
 		gameOverScoreText.x._ = (System.stage.width / 2) + (gameOverScoreText.getNaturalWidth() / 2);
-		gameOverScoreText.y._ += gameOverScoreText.getNaturalHeight() / 2;
+		gameOverScoreText.y._ += scoreBG.getNaturalHeight() / 2;
 		scoreEntity.addChild(new Entity().add(gameOverScoreText));
 		
 		endGame.addChild(scoreEntity);
+		
+		var playAgainEntity: Entity = new Entity();
+		playAgainBG = new FillSprite(0xFFFCBD, System.stage.width, UI_BACKGROUND_HEIGHT);
+		playAgainBG.y._ = System.stage.height / 3 + ((playAgainBG.height._ / 2) * 3);
+		
+		// Hover In on play again button
+		playAgainBG.pointerIn.connect(function(event: PointerEvent) {
+			playAgainBG.color = 0xFFF98A;
+		});
+		
+		// Hover Out on play again button
+		playAgainBG.pointerOut.connect(function(event: PointerEvent) {
+			playAgainBG.color = 0xFFFCBD;
+		});
+		
+		playAgainEntity.add(playAgainBG);
 		
 		playAgainText = new TextSprite(gameFont, "PLAY AGAIN!");
 		playAgainText.centerAnchor();
 		
 		playAgainText.x._ = System.stage.width / 2;
-		playAgainText.y._ = scoreBG.y._ + (playAgainText.getNaturalHeight() * 2);
-		endGame.addChild(new Entity().add(playAgainText));
+		playAgainText.y._ += playAgainBG.getNaturalHeight() / 2;
+		playAgainEntity.addChild(new Entity().add(playAgainText));
+		
+		endGame.addChild(playAgainEntity);
 	}
 	
 	private static function showMainGame() {	
@@ -172,7 +190,7 @@ class Main
 		updateTimer = new Timer(UPDATE_TIME);
 		updateTimer.run = onUpdate;
 
-		// Dispose left over enemies from last game
+		// Dispose any remaining enemies from last game
 		if(enemyUnits.length > 0) {
 			for (enemy in enemyUnits) {
 				enemy.dispose();
@@ -180,34 +198,34 @@ class Main
 		}
 		enemyUnits = new Array<GameEnemy>();
 		
-		// Dispose left over bullets from last game
-		if (playerUnit.gameBullet.length > 0) {
-			for (bullet in playerUnit.gameBullet) {
+		// Dispose any remaining bullets from last game
+		if (playerUnit.shipBullets.length > 0) {
+			for (bullet in playerUnit.shipBullets) {
 				bullet.dispose();
 			}
 		}
-		playerUnit.gameBullet = new Array<GameBullet>();
+		playerUnit.clearShipBullets();
 		
-		playerUnit.setXY(50, System.stage.height * 0.8);
 		playerUnit.setRotation(180);
+		playerUnit.setXY(System.stage.width / 2, System.stage.height * 0.8);
 		
+		// We need to re-add the player unit to the main game entity
 		mainGame.addChild(new Entity().add(playerUnit));
 		
 		System.root.removeChild(endGame);
 		System.root.addChild(mainGame);
 		
-		gameSignalConnection = System.pointer.down.connect(onMouseDown);
+		playerFireSignalConnection = System.pointer.down.connect(onMouseDown);
+		playerMoveSignalConnection = System.pointer.move.connect(playerUnit.onMouseMove);
 	}
 	
 	private static function showGameEnd() {	
 		gameOverScoreText.text = "Score: " + enemiesDestroyed;
 		
-		playAgainText.pointerUp.connect(function(event: PointerEvent) {
+		// Pointer trigger for play again button
+		playAgainBG.pointerUp.connect(function(event: PointerEvent) {
 			showMainGame();
-		}).once();
-		
-		//Utils.ConsoleLog(playerUnit.gameBullet.length + " " + enemyUnits.length);
-		
+		}).once();	
 		
 		System.root.removeChild(mainGame);
 		System.root.addChild(endGame);
@@ -221,42 +239,39 @@ class Main
 		enemy.setLife(ENEMY_LIFE);
 		
 		var randXpos: Float = Std.random(System.stage.width);
-		var xPos: Float = (randXpos < enemy.getNaturalWidth()) ? randXpos + enemy.getNaturalWidth() : randXpos - enemy.getNaturalWidth();
+		var xPos: Float = (randXpos < enemy.getNaturalWidth()) ? randXpos + enemy.getNaturalWidth() * 2 : randXpos - enemy.getNaturalWidth() * 2;
 		enemy.setXY(xPos, 0);
-		enemy.y.animateBy(600, 5);
-		//enemy.y.animateTo(System.stage.height, 5);
+		enemy.y.animateTo(System.stage.height + 100, 5);
 		
-		//Utils.ConsoleLog(enemyUnits.length + "");
-		
-		mainGame.addChild(new Entity().add(enemy));
+		mainGame.addChild(new Entity().add(enemy), false);
 		enemyUnits.push(enemy);		
 	}
 	
 	private static function onUpdate(): Void {
 		// Collision detection for player's ship bullet and enemies
-		if (playerUnit.gameBullet != null && enemyUnits != null) {
-			for (bullet in playerUnit.gameBullet) {
+		if (playerUnit.shipBullets != null && enemyUnits != null) {
+			for (bullet in playerUnit.shipBullets) {
 				for (enemy in enemyUnits) {
 					if (bullet.hasCollidedWith(enemy)) {
 						enemy.subtractLife();
-						if (enemy.IsDead()) {
+						if (enemy.isDead()) {
 							enemyUnits.remove(enemy);
 							enemiesDestroyed++;
 							setScoreDirty();
 						}
 						
 						bullet.dispose();
-						playerUnit.RemoveBullet(bullet);
+						playerUnit.removeBullet(bullet);
 					}
 				}
 			}
 		}
 		
 		// Cleaning bullet list 
-		if (playerUnit.gameBullet != null) {
-			for (bullet in playerUnit.gameBullet) {
-				if (bullet != null && bullet.IsDead()) {
-					playerUnit.RemoveBullet(bullet);
+		if (playerUnit.shipBullets!= null) {
+			for (bullet in playerUnit.shipBullets) {
+				if (bullet != null && bullet.isDead()) {
+					playerUnit.removeBullet(bullet);
 				}
 			}
 		}
@@ -265,7 +280,7 @@ class Main
 			for (enemy in enemyUnits) {
 				if (enemy != null) {
 					// Cleaning enemy List
-					if(enemy.IsDead()) {
+					if(enemy.isDead()) {
 						enemyUnits.remove(enemy);
 					}
 					else {
@@ -280,7 +295,8 @@ class Main
 							spawnerTimer.stop();
 							spawnerTimer = null;
 							
-							gameSignalConnection.dispose();
+							playerFireSignalConnection.dispose();
+							playerMoveSignalConnection.dispose();
 							
 							showGameEnd();
 						}
@@ -291,10 +307,10 @@ class Main
 	}
 	
 	private static function onMouseDown(event: PointerEvent): Void {
-		playerUnit.FireBullet();
+		playerUnit.fireBullet();
 	}
 	
 	private static function setScoreDirty(): Void {
-		enemiesDestryoedText.text = "Enemies Destroyed: " + enemiesDestroyed;
+		enemiesDestroyedText.text = "Enemies Destroyed: " + enemiesDestroyed;
 	}
 }

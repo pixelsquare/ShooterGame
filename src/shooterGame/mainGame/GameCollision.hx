@@ -1,20 +1,17 @@
 package shooterGame.mainGame;
 
-import flambe.animation.AnimatedFloat;
-import flambe.display.Graphics;
 import flambe.display.Texture;
 import flambe.math.Point;
-
 import shooterGame.mainGame.GameElement;
-import shooterGame.utils.pxlSq.Utils;
+
 
 /**
  * ...
- * @author ...
+ * @author Anthony Ganzon
  */
 class GameCollision extends GameElement
 {	
-	public var bounds: Point;
+	private var bounds: Point;
 	
 	public function new() 
 	{
@@ -28,7 +25,7 @@ class GameCollision extends GameElement
 		setColliderSize(new Point(this.getNaturalWidth() / 2, this.getNaturalHeight() / 2));
 	}
 	
-	public function setColliderSize(size: Point) {
+	public function setColliderSize(size: Point): Void {
 		bounds = size;
 	}
 	
@@ -45,18 +42,14 @@ class GameCollision extends GameElement
 		this.y._ + this.bounds.y <
 		other.y._ - other.bounds.y;
 		
-		//Utils.ConsoleLog(bounds.toString());
-		//Utils.ConsoleLog(other.bounds.toString());
-		//Utils.ConsoleLog(xHasNotCollided + " " +yHasNotCollided);
-		
 		if (xHasNotCollided || yHasNotCollided)
 			return false;
 		
 		return true;
 	}
 	
-	public function boundsToString(): String {
-		return bounds.toString();
+	public function getBounds(): Point {
+		return bounds;
 	}
 	
 }

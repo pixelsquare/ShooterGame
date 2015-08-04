@@ -2,7 +2,7 @@ package shooterGame.utils;
 
 /**
  * ...
- * @author ...
+ * @author Anthony Ganzon
  */
 class AssetName
 {

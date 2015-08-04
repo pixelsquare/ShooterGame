@@ -1,13 +1,9 @@
 package shooterGame.mainGame;
 
-import flambe.animation.AnimatedFloat;
-import flambe.System;
-import flambe.display.Graphics;
 import flambe.display.FillSprite;
 import flambe.Entity;
 import flambe.math.Point;
 
-import shooterGame.utils.pxlSq.Utils;
 
 /**
  * ...
@@ -37,7 +33,12 @@ class GameBullet extends GameCollision
 	
 	override public function onAdded() 
 	{
-		this.owner.addChild(new Entity().add(this.bulletShape));
+		this.owner.addChild(new Entity().add(bulletShape));
+	}
+	
+	override public function onRemoved() 
+	{
+		this.owner.dispose();
 	}
 	
 	override public function getNaturalWidth():Float 

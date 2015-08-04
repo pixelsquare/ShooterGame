@@ -1,77 +1,65 @@
 package shooterGame.mainGame;
 
-import flambe.System;
 import flambe.display.Graphics;
-import flambe.display.Texture;
 import flambe.display.Sprite;
-import flambe.Entity;
-import format.agal.Data.Tex;
-
-import shooterGame.utils.pxlSq.Utils;
+import flambe.display.Texture;
+import flambe.System;
 
 /**
  * ...
- * @author ...
+ * @author Anthony Ganzon
  */
 class GameElement extends Sprite
 {
-
-	public var texture: Texture;
-	private var isDead: Bool;
+	private var elementTexture: Texture;
+	private var elementIsDead: Bool;
+	
+	private static inline var SCREEN_OFFSET: Int = 50;
 	
 	public function new() 
 	{
 		super();
-		isDead = false;
+		elementTexture = null;
+		elementIsDead = false;
 	}
 	
 	public function setTexture(texture: Texture): Void {
-		this.texture = texture;
+		elementTexture = texture;
 	}
 	
-	public function IsDead(): Bool {
-		return isDead;
+	public function isDead(): Bool {
+		return elementIsDead;
 	}
 	
-	public function elementGameBounds() {
-				// Remove the element when is out of the screen bounds
-		if (this.x._ <= 0 || this.x._ >= System.stage.width ||
-			this.y._ <= 0 || this.y._ >= System.stage.height) {
+	public function elementScreenConstraint(): Void {
+		// Remove the element when is out of the screen bounds
+		if (this.x._ <= 0 || this.x._ >= System.stage.width + getNaturalWidth() ||
+			this.y._ <= 0 || this.y._ >= System.stage.height + getNaturalHeight()) {
 				this.owner.dispose();
-				isDead = true;
+				elementIsDead = true;
 		}
 	}
 	
-	override public function onAdded() 
-	{
-		super.onAdded();
-	}
-	
-	override public function onRemoved() 
-	{
-		this.owner.dispose();
-	}
-	
-	override public function onUpdate(dt:Float) 
+	override public function onUpdate(dt:Float)
 	{
 		super.onUpdate(dt);
-		elementGameBounds();
+		elementScreenConstraint();
 	}
 	
 	override public function draw(g:Graphics) 
 	{
-		if (texture != null) {
-			g.drawTexture(texture, 0, 0);
+		if (elementTexture != null) {
+			g.drawTexture(elementTexture, 0, 0);
 		}
 	}
 	
 	override public function getNaturalWidth():Float 
 	{
-		return (texture != null) ? texture.width : 0;
+		return (elementTexture != null) ? elementTexture.width : 0;
 	}
 	
 	override public function getNaturalHeight():Float 
 	{
-		return (texture != null) ? texture.height : 0;
+		return (elementTexture != null) ? elementTexture.height : 0;
 	}
 }
