@@ -16,6 +16,11 @@ class GameUnit extends GameCollision
 	
 	public function subtractLife(life:Int = 1): Void {
 		this.life -= life;
+		
+		if (this.life <= 0) {
+			this.owner.dispose();
+			isDead = true;
+		}
 	}
 	
 	public function setLife(life: Int): Void {

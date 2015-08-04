@@ -25,10 +25,14 @@ class GameShip extends GameUnit
 	}
 	
 	public function SpawnBullet(): Void {
-		var bullet: GameBullet = new GameBullet(this.x._, this.y._);
+		var bullet: GameBullet = new GameBullet(this.x._, this.y._ - 50);
 		bullet.centerAnchor();
 		gameBullet.push(bullet);
 		this.owner.parent.addChild(new Entity().add(bullet));
+	}
+	
+	public function RemoveBullet(bullet: GameBullet) {
+		gameBullet.remove(bullet);
 	}
 	
 	override public function onAdded() 
