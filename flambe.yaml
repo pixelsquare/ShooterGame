@@ -1,11 +1,11 @@
 # Basic information about the game.
 name: Shooter Game
-description: A short one-line description.
+description: A vertical shooter game.
 
 # Information about the game developer.
 developer:
-  name: Your Company Name
-  url: http://yourwebsite.com
+  name: PixelSquare
+  url: https://github.com/pixelsquare
 
 # The game's unique identifier.
 id: com.yourdomain.yourgame
